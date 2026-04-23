@@ -15,8 +15,24 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.http import HttpResponse
+from django.conf.urls.static import static
+
+def home(request):
+    return HttpResponse("Welcome to the CRM Django application!")
+def about(request):
+    return HttpResponse("This is a CRM application built with Django.")
+def contact(request):
+    return HttpResponse("Contact us at 0343358360 or email us at fazilahmed724@gmail.com.")
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
+    # path('', home, name='home'),
+    # path('about/', about, name='about'),    
+    # path('contact/', contact, name='contact'),
+
 ]
