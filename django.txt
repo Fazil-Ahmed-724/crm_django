@@ -1,0 +1,9 @@
+install Django
+python -m django startproject crm_django . 	 -- create project
+python manage.py startapp accounts		 -- setup 
+cd crm_django
+python manage.py runserver			 -- run projecct
+python manage.py migrate 			 -- run migration	
+
+
+asctro

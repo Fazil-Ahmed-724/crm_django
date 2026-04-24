@@ -1,4 +1,0 @@
-install Django
-python -m django startproject crm_django .
-cd crm_django
-python manage.py runserver
