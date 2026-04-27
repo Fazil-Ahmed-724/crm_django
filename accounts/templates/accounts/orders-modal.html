@@ -211,8 +211,8 @@
                 $('#addOrderModal').modal('hide');
                 orderTableBody().append(orderRowHtml(response));
             },
-            error: function () {
-                alert('Failed to add order.');
+            error: function (xhr) {
+                alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to add order.');
             }
         });
     });
@@ -227,8 +227,8 @@
                 $('#editOrderModal').modal('hide');
                 $(`tr[data-order-id="${response.id}"]`).replaceWith(orderRowHtml(response));
             },
-            error: function () {
-                alert('Failed to edit order.');
+            error: function (xhr) {
+                alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to edit order.');
             }
         });
     });

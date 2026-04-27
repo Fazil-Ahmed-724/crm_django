@@ -195,8 +195,8 @@
                 $('#addProductModal').modal('hide');
                 productTableBody().append(productRowHtml(response));
             },
-            error: function () {
-                alert('Failed to add product.');
+            error: function (xhr) {
+                alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to add product.');
             }
         });
     });
@@ -214,8 +214,8 @@
                 $('#editProductModal').modal('hide');
                 $(`tr[data-product-id="${response.id}"]`).replaceWith(productRowHtml(response));
             },
-            error: function () {
-                alert('Failed to edit product.');
+            error: function (xhr) {
+                alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to edit product.');
             }
         });
     });

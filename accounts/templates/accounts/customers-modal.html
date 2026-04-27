@@ -184,8 +184,8 @@
                 $('#addCustomerModal').modal('hide');
                 customerTableBody().append(customerRowHtml(response));
             },
-            error: function () {
-                alert('Failed to add customer.');
+            error: function (xhr) {
+                alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to add customer.');
             }
         });
     });
@@ -200,8 +200,8 @@
                 $('#editCustomerModal').modal('hide');
                 $(`tr[data-customer-id="${response.id}"]`).replaceWith(customerRowHtml(response));
             },
-            error: function () {
-                alert('Failed to edit customer.');
+            error: function (xhr) {
+                alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Failed to edit customer.');
             }
         });
     });
