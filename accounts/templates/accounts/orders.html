@@ -1,0 +1,67 @@
+{% extends 'accounts/main.html' %}
+
+{% block content %}
+{% include 'accounts/orders-modal.html' %}
+<div class="row p-3">
+    <div class="col-md-12">
+        <div class="card card-body">
+            <h5>Orders</h5>
+            <button class="btn btn-sm btn-success float-end" data-bs-toggle="modal"
+                data-bs-target="#addOrderModal">Add Order</button>
+        </div>
+    </div>
+</div>
+
+<div class="row p-3">
+    <div class="col-md-12">
+        <div class="card card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Product</th>
+                        <th>Status</th>
+                        <th>Date Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="order-table-body" data-layout="full">
+                    {% for order in orders %}
+                    <tr data-order-id="{{ order.id }}">
+                        <td>{{ order.customer.name|default:"Unknown customer" }}</td>
+                        <td>{{ order.product.name|default:"Unknown product" }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.date_created|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                data-bs-target="#viewOrderModal" data-id="{{ order.id }}"
+                                data-customer-id="{{ order.customer.id|default:'' }}"
+                                data-customer-name="{{ order.customer.name|default:'Unknown customer' }}"
+                                data-product-id="{{ order.product.id|default:'' }}"
+                                data-product-name="{{ order.product.name|default:'Unknown product' }}"
+                                data-status="{{ order.status }}"
+                                data-date-created="{{ order.date_created|date:'Y-m-d H:i' }}">View</button>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#editOrderModal" data-id="{{ order.id }}"
+                                data-customer-id="{{ order.customer.id|default:'' }}"
+                                data-product-id="{{ order.product.id|default:'' }}"
+                                data-status="{{ order.status }}"
+                                data-edit-url="{% url 'edit_order' order.id %}">Edit</button>
+                            <button type="button" class="btn btn-sm btn-danger delete-order-btn"
+                                data-id="{{ order.id }}"
+                                data-delete-url="{% url 'delete_order' order.id %}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No orders found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ def a_home(request):
     orders = Order.objects.all()
     products = Product.objects.all()
     categories = Product.CATEGORY
+    statuses = Order.STATUS
     total_orders = orders.count()
     delivered_orders = orders.filter(status='Delivered').count()
     pending_orders = orders.filter(status='Pending').count()
@@ -17,6 +18,7 @@ def a_home(request):
         'orders': orders,
         'products': products,
         'categories': categories,
+        'statuses': statuses,
         'total_orders': total_orders,
         'delivered_orders': delivered_orders,
         'pending_orders': pending_orders
@@ -80,3 +82,111 @@ def view_product(request, product_id):
 def customers(request):
     customers = Customer.objects.all()
     return render(request, 'accounts/customers.html', {'customers': customers})
+
+@csrf_exempt
+def add_customer(request):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        name = request.POST.get('name')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        customer = Customer.objects.create(name=name, phone=phone, email=email)
+        return JsonResponse({
+            'id': customer.id,
+            'name': customer.name,
+            'phone': customer.phone,
+            'email': customer.email,
+            'total_orders': customer.order_set.count(),
+        })
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def edit_customer(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        customer.name = request.POST.get('name')
+        customer.phone = request.POST.get('phone')
+        customer.email = request.POST.get('email')
+        customer.save()
+        return JsonResponse({
+            'id': customer.id,
+            'name': customer.name,
+            'phone': customer.phone,
+            'email': customer.email,
+            'total_orders': customer.order_set.count(),
+        })
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def delete_customer(request, customer_id):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        customer = get_object_or_404(Customer, id=customer_id)
+        customer.delete()
+        return JsonResponse({'id': customer_id, 'deleted': True})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def orders(request):
+    orders = Order.objects.all()
+    products = Product.objects.all()
+    customers = Customer.objects.all()
+    statuses = Order.STATUS
+    return render(request, 'accounts/orders.html', {
+        'orders': orders,
+        'products': products,
+        'customers': customers,
+        'statuses': statuses,
+    })
+
+@csrf_exempt
+def add_order(request):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        customer_id = request.POST.get('customer')
+        product_id = request.POST.get('product')
+        status = request.POST.get('status')
+        customer = get_object_or_404(Customer, id=customer_id)
+        product = get_object_or_404(Product, id=product_id)
+        order = Order.objects.create(customer=customer, product=product, status=status)
+        return JsonResponse({
+            'id': order.id,
+            'customer_id': order.customer.id if order.customer else None,
+            'customer_name': order.customer.name if order.customer else 'Unknown customer',
+            'product_id': order.product.id if order.product else None,
+            'product_name': order.product.name if order.product else 'Unknown product',
+            'status': order.status,
+            'date_created': order.date_created.strftime('%Y-%m-%d %H:%M'),
+        })
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def edit_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        customer_id = request.POST.get('customer')
+        product_id = request.POST.get('product')
+        status = request.POST.get('status')
+        order.customer = get_object_or_404(Customer, id=customer_id)
+        order.product = get_object_or_404(Product, id=product_id)
+        order.status = status
+        order.save()
+        return JsonResponse({
+            'id': order.id,
+            'customer_id': order.customer.id if order.customer else None,
+            'customer_name': order.customer.name if order.customer else 'Unknown customer',
+            'product_id': order.product.id if order.product else None,
+            'product_name': order.product.name if order.product else 'Unknown product',
+            'status': order.status,
+            'date_created': order.date_created.strftime('%Y-%m-%d %H:%M'),
+        })
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def delete_order(request, order_id):
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        order = get_object_or_404(Order, id=order_id)
+        order.delete()
+        return JsonResponse({'id': order_id, 'deleted': True})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def view_order(request, order_id):
+    order = Order.objects.get(id=order_id)
+    return render(request, 'accounts/orders.html', {'order': order})

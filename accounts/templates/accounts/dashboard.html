@@ -2,11 +2,14 @@
 
 {% block content %}
 {% include 'accounts/status.html' %}
+{% include 'accounts/customers-modal.html' %}
+{% include 'accounts/orders-modal.html' %}
 {% include 'accounts/products-modal.html' %}
 <div class="row p-3">
     <div class="col-md-4">
         <h5>CUSTOMERS:</h5>
-        <a class="btn btn-primary btn-sm btn-block" href="">Create Customer</a>
+        <button class="btn btn-primary btn-sm btn-block" data-bs-toggle="modal"
+            data-bs-target="#addCustomerModal">Create Customer</button>
         <table class="table table-sm">
             <thead>
                 <tr>
@@ -16,21 +19,37 @@
                     <th>Delete</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="customer-table-body" data-layout="compact">
                 {% for customer in customers %}
-                <tr>
+                <tr data-customer-id="{{ customer.id }}">
                     <td>{{ customer.name }}</td>
                     <td>{{ customer.phone }}</td>
-                    <td><a class="btn btn-sm btn-outline-primary" href="">Update</a></td>
-                    <td><a class="btn btn-sm btn-outline-danger" href="">Delete</a </tr>
-                        {% endfor %}
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#editCustomerModal" data-id="{{ customer.id }}"
+                            data-name="{{ customer.name }}" data-phone="{{ customer.phone }}"
+                            data-email="{{ customer.email }}"
+                            data-edit-url="{% url 'edit_customer' customer.id %}">
+                            Update
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-customer-btn"
+                            data-id="{{ customer.id }}"
+                            data-delete-url="{% url 'delete_customer' customer.id %}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
 
     <div class="col-md-4">
         <h5>ORDERS</h5>
-        <a class="btn btn-primary btn-sm btn-block" href="">Create Order</a>
+        <button class="btn btn-primary btn-sm btn-block" data-bs-toggle="modal"
+            data-bs-target="#addOrderModal">Create Order</button>
         <table class="table table-sm">
             <thead>
                 <tr>
@@ -41,14 +60,29 @@
                     <th>Delete</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="order-table-body" data-layout="compact">
                 {% for order in orders %}
-                <tr>
-                    <td>{{ order.product.name }}</td>
-                    <td>{{ order.date_ordered }}</td>
+                <tr data-order-id="{{ order.id }}">
+                    <td>{{ order.product.name|default:"Unknown product" }}</td>
+                    <td>{{ order.date_created|date:"Y-m-d H:i" }}</td>
                     <td>{{ order.status }}</td>
-                    <td><a class="btn btn-sm btn-outline-primary" href="">Update</a></td>
-                    <td><a class="btn btn-sm btn-outline-danger" href="">Delete</a></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#editOrderModal" data-id="{{ order.id }}"
+                            data-customer-id="{{ order.customer.id|default:'' }}"
+                            data-product-id="{{ order.product.id|default:'' }}"
+                            data-status="{{ order.status }}"
+                            data-edit-url="{% url 'edit_order' order.id %}">
+                            Update
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-order-btn"
+                            data-id="{{ order.id }}"
+                            data-delete-url="{% url 'delete_order' order.id %}">
+                            Delete
+                        </button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

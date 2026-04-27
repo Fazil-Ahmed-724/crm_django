@@ -1,37 +1,13 @@
 {% extends 'accounts/main.html' %}
 
 {% block content %}
-
-<div class="row g-3 p-3">
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Customer:</h5>
-                <hr>
-                <button class="btn btn-outline-primary btn-sm w-100 mb-2">Update Customer</button>
-                <button class="btn btn-danger btn-sm w-100">Delete Customer</button>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Contact Information</h5>
-                <hr>
-                <p class="mb-1"><strong>Email:</strong></p>
-                <p class="mb-3">example@example.com</p>
-                <p class="mb-1"><strong>Phone:</strong></p>
-                <p>+1 234 567 890</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">Total Orders</h5>
-                <hr>
-                <p class="display-6">0</p>
-            </div>
+{% include 'accounts/customers-modal.html' %}
+<div class="row p-3">
+    <div class="col-md-12">
+        <div class="card card-body">
+            <h5>Customers</h5>
+            <button class="btn btn-sm btn-success float-end" data-bs-toggle="modal"
+                data-bs-target="#addCustomerModal">Add Customer</button>
         </div>
     </div>
 </div>
@@ -39,38 +15,49 @@
 <div class="row p-3">
     <div class="col-md-12">
         <div class="card card-body">
-            <form class="row g-2 align-items-center">
-                <div class="col-auto">
-                    <input type="search" class="form-control" placeholder="Search customers">
-                </div>
-                <div class="col-auto">
-                    <button class="btn btn-primary">Search</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="row p-3">
-    <div class="col-md-12">
-        <div class="card card-body">
-            <table class="table table-hover mb-0">
+            <table class="table">
                 <thead>
                     <tr>
-                        <th>Product</th>
-                        <th>Category</th>
-                        <th>Date Ordered</th>
-                        <th>Status</th>
-                        <th>Update</th>
-                        <th>Remove</th>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Email</th>
+                        <th>Total Orders</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Order rows go here -->
+                <tbody id="customer-table-body" data-layout="full">
+                    {% for customer in customers %}
+                    <tr data-customer-id="{{ customer.id }}">
+                        <td>{{ customer.name }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.order_set.count }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                data-bs-target="#viewCustomerModal" data-id="{{ customer.id }}"
+                                data-name="{{ customer.name }}" data-phone="{{ customer.phone }}"
+                                data-email="{{ customer.email }}"
+                                data-total-orders="{{ customer.order_set.count }}">View</button>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#editCustomerModal" data-id="{{ customer.id }}"
+                                data-name="{{ customer.name }}" data-phone="{{ customer.phone }}"
+                                data-email="{{ customer.email }}"
+                                data-edit-url="{% url 'edit_customer' customer.id %}">Edit</button>
+                            <button type="button" class="btn btn-sm btn-danger delete-customer-btn"
+                                data-id="{{ customer.id }}"
+                                data-delete-url="{% url 'delete_customer' customer.id %}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No customers found.</td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
 {% endblock %}

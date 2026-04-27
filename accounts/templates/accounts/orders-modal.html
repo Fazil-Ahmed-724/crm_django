@@ -1,0 +1,258 @@
+<!-- Add Order Modal -->
+<div class="modal fade" id="addOrderModal" tabindex="-1" aria-labelledby="addOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOrderModalLabel">Add Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="add-order-customer">Customer</label>
+                        <select name="customer" id="add-order-customer" class="form-control" required>
+                            <option value="">Select Customer</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="add-order-product">Product</label>
+                        <select name="product" id="add-order-product" class="form-control" required>
+                            <option value="">Select Product</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-order-status">Status</label>
+                        <select name="status" id="add-order-status" class="form-control" required>
+                            <option value="">Select Status</option>
+                            {% for key, value in statuses %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Order Modal -->
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-labelledby="viewOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewOrderModalLabel">View Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Customer:</strong> {{ order.customer.name }}</p>
+                <p><strong>Product:</strong> {{ order.product.name }}</p>
+                <p><strong>Status:</strong> {{ order.status }}</p>
+                <p><strong>Date Created:</strong> {{ order.date_created }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Order Modal -->
+<div class="modal fade" id="editOrderModal" tabindex="-1" aria-labelledby="editOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editOrderModalLabel">Edit Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label for="edit-order-customer">Customer</label>
+                        <select name="customer" id="edit-order-customer" class="form-control" required>
+                            <option value="">Select Customer</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}">{{ customer.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="edit-order-product">Product</label>
+                        <select name="product" id="edit-order-product" class="form-control" required>
+                            <option value="">Select Product</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-order-status">Status</label>
+                        <select name="status" id="edit-order-status" class="form-control" required>
+                            <option value="">Select Status</option>
+                            {% for key, value in statuses %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function orderTableBody() {
+        return $('#order-table-body');
+    }
+
+    function orderRowHtml(order) {
+        var layout = orderTableBody().data('layout');
+
+        if (layout === 'full') {
+            return `
+                <tr data-order-id="${order.id}">
+                    <td>${order.customer_name}</td>
+                    <td>${order.product_name}</td>
+                    <td>${order.status}</td>
+                    <td>${order.date_created}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                            data-bs-target="#viewOrderModal" data-id="${order.id}"
+                            data-customer-id="${order.customer_id}" data-customer-name="${order.customer_name}"
+                            data-product-id="${order.product_id}" data-product-name="${order.product_name}"
+                            data-status="${order.status}" data-date-created="${order.date_created}">View</button>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#editOrderModal" data-id="${order.id}"
+                            data-customer-id="${order.customer_id}" data-product-id="${order.product_id}"
+                            data-status="${order.status}" data-edit-url="/orders/edit/${order.id}/">Edit</button>
+                        <button type="button" class="btn btn-sm btn-danger delete-order-btn"
+                            data-id="${order.id}" data-delete-url="/orders/delete/${order.id}/">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        return `
+            <tr data-order-id="${order.id}">
+                <td>${order.product_name}</td>
+                <td>${order.date_created}</td>
+                <td>${order.status}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#editOrderModal" data-id="${order.id}"
+                        data-customer-id="${order.customer_id}" data-product-id="${order.product_id}"
+                        data-status="${order.status}" data-edit-url="/orders/edit/${order.id}/">Update</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-order-btn"
+                        data-id="${order.id}" data-delete-url="/orders/delete/${order.id}/">Delete</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    $('#viewOrderModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var customerName = button.data('customer-name');
+        var productName = button.data('product-name');
+        var status = button.data('status');
+        var dateCreated = button.data('date-created');
+
+        var modal = $(this);
+        modal.find('.modal-body').html(
+            '<p><strong>Customer:</strong> ' + customerName + '</p>' +
+            '<p><strong>Product:</strong> ' + productName + '</p>' +
+            '<p><strong>Status:</strong> ' + status + '</p>' +
+            '<p><strong>Date Created:</strong> ' + dateCreated + '</p>'
+        );
+    });
+
+    $('#editOrderModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var customerId = button.data('customer-id');
+        var productId = button.data('product-id');
+        var status = button.data('status');
+        var editUrl = button.data('edit-url');
+
+        var modal = $(this);
+        modal.find('#edit-order-customer').val(customerId);
+        modal.find('#edit-order-product').val(productId);
+        modal.find('#edit-order-status').val(status);
+        modal.find('form').attr('action', editUrl);
+    });
+
+    $('#addOrderModal').on('show.bs.modal', function () {
+        var modal = $(this);
+        modal.find('#add-order-customer').val('');
+        modal.find('#add-order-product').val('');
+        modal.find('#add-order-status').val('');
+        modal.find('form').attr('action', '{% url "add_order" %}');
+    });
+
+    $('#addOrderModal form').on('submit', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: '{% url "add_order" %}',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function (response) {
+                $('#addOrderModal').modal('hide');
+                orderTableBody().append(orderRowHtml(response));
+            },
+            error: function () {
+                alert('Failed to add order.');
+            }
+        });
+    });
+
+    $('#editOrderModal form').on('submit', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: $(this).attr('action'),
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function (response) {
+                $('#editOrderModal').modal('hide');
+                $(`tr[data-order-id="${response.id}"]`).replaceWith(orderRowHtml(response));
+            },
+            error: function () {
+                alert('Failed to edit order.');
+            }
+        });
+    });
+
+    $(document).on('click', '.delete-order-btn', function () {
+        var orderId = $(this).data('id');
+        var deleteUrl = $(this).data('delete-url');
+
+        if (!confirm('Delete this order?')) {
+            return;
+        }
+
+        $.ajax({
+            url: deleteUrl,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function () {
+                $(`tr[data-order-id="${orderId}"]`).remove();
+            },
+            error: function () {
+                alert('Failed to delete order.');
+            }
+        });
+    });
+</script>
