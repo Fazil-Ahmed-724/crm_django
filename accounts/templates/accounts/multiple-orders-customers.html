@@ -1,0 +1,266 @@
+{% extends 'accounts/main.html' %}
+
+{% block content %}
+<div class="row p-3">
+    <div class="col-md-12">
+        <div class="card card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="mb-1">Multiple Orders for {{ customer.name }}</h5>
+                    <p class="mb-0 text-muted">{{ customer.email }} | {{ customer.phone }}</p>
+                </div>
+                <a href="{% url 'customers' %}" class="btn btn-outline-secondary btn-sm">Back to Customers</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row p-3">
+    <div class="col-md-12">
+        <div class="card card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Create Orders</h5>
+                <button type="button" class="btn btn-success btn-sm" id="add-order-row-btn">Add Row</button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Status</th>
+                            <th>Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody id="new-order-rows"></tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary" id="reset-order-rows-btn">Reset</button>
+                <button type="button" class="btn btn-primary" id="save-customer-orders-btn">Save Orders</button>
+            </div>
+            <div class="small text-danger mt-2 d-none" id="customer-orders-error"></div>
+        </div>
+    </div>
+</div>
+
+<div class="row p-3">
+    <div class="col-md-12">
+        <div class="card card-body">
+            <h5>Existing Orders</h5>
+            <table class="table mt-3">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Status</th>
+                        <th>Date Created</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="customer-existing-orders-body">
+                    {% for order in orders %}
+                    <tr data-order-id="{{ order.id }}">
+                        <td>{{ order.product.name|default:"Unknown product" }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.date_created|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger delete-existing-order-btn"
+                                data-id="{{ order.id }}" data-delete-url="{% url 'delete_order' order.id %}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="no-existing-orders-row">
+                        <td colspan="4" class="text-center">No orders found for this customer.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const productOptionsHtml = `
+        <option value="">Select Product</option>
+        {% for product in products %}
+        <option value="{{ product.id }}">{{ product.name }}</option>
+        {% endfor %}
+    `;
+
+    const statusOptionsHtml = `
+        <option value="">Select Status</option>
+        {% for key, value in statuses %}
+        <option value="{{ key }}">{{ value }}</option>
+        {% endfor %}
+    `;
+
+    function customerOrderRowHtml() {
+        return `
+            <tr class="new-order-row">
+                <td>
+                    <select name="product" class="form-control order-product-field" required>
+                        ${productOptionsHtml}
+                    </select>
+                </td>
+                <td>
+                    <select name="status" class="form-control order-status-field" required disabled>
+                        ${statusOptionsHtml}
+                    </select>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-new-order-row-btn">Remove</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    function existingOrderRowHtml(order) {
+        return `
+            <tr data-order-id="${order.id}">
+                <td>${order.product_name}</td>
+                <td>${order.status}</td>
+                <td>${order.date_created}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-existing-order-btn"
+                        data-id="${order.id}" data-delete-url="/orders/delete/${order.id}/">Delete</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    function showCustomerOrdersError(message) {
+        const errorBox = $('#customer-orders-error');
+        if (message) {
+            errorBox.text(message).removeClass('d-none');
+            return;
+        }
+        errorBox.text('').addClass('d-none');
+    }
+
+    function ensureAtLeastOneRow() {
+        if (!$('#new-order-rows .new-order-row').length) {
+            $('#new-order-rows').append(customerOrderRowHtml());
+        }
+    }
+
+    $('#add-order-row-btn').on('click', function () {
+        $('#new-order-rows').append(customerOrderRowHtml());
+    });
+
+    $('#reset-order-rows-btn').on('click', function () {
+        $('#new-order-rows').empty();
+        showCustomerOrdersError('');
+        ensureAtLeastOneRow();
+    });
+
+    $(document).on('change', '.order-product-field', function () {
+        const statusField = $(this).closest('tr').find('.order-status-field');
+        if ($(this).val()) {
+            statusField.prop('disabled', false);
+            return;
+        }
+        statusField.val('').prop('disabled', true);
+    });
+
+    $(document).on('click', '.remove-new-order-row-btn', function () {
+        $(this).closest('tr').remove();
+        ensureAtLeastOneRow();
+    });
+
+    $('#save-customer-orders-btn').on('click', function () {
+        const rows = $('#new-order-rows .new-order-row');
+        const payload = {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        };
+        let hasError = false;
+
+        showCustomerOrdersError('');
+
+        if (!rows.length) {
+            showCustomerOrdersError('Add at least one order row.');
+            ensureAtLeastOneRow();
+            return;
+        }
+
+        rows.each(function () {
+            const product = $(this).find('.order-product-field').val();
+            const status = $(this).find('.order-status-field').val();
+
+            if (!product || !status) {
+                hasError = true;
+                return false;
+            }
+
+            if (!payload.product) {
+                payload.product = [];
+                payload.status = [];
+            }
+
+            payload.product.push(product);
+            payload.status.push(status);
+        });
+
+        if (hasError) {
+            showCustomerOrdersError('Every row needs both product and status.');
+            return;
+        }
+
+        $.ajax({
+            url: '{% url "customer_orders" customer.id %}',
+            type: 'POST',
+            traditional: true,
+            data: payload,
+            success: function (response) {
+                const tbody = $('#customer-existing-orders-body');
+                $('#no-existing-orders-row').remove();
+                response.orders.forEach(function (order) {
+                    tbody.prepend(existingOrderRowHtml(order));
+                });
+                $('#new-order-rows').empty();
+                ensureAtLeastOneRow();
+            },
+            error: function (xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.error
+                    ? xhr.responseJSON.error
+                    : 'Failed to save orders.';
+                showCustomerOrdersError(message);
+            }
+        });
+    });
+
+    $(document).on('click', '.delete-existing-order-btn', function () {
+        const orderId = $(this).data('id');
+        const deleteUrl = $(this).data('delete-url');
+
+        if (!confirm('Delete this order?')) {
+            return;
+        }
+
+        $.ajax({
+            url: deleteUrl,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function () {
+                $(`tr[data-order-id="${orderId}"]`).remove();
+                if (!$('#customer-existing-orders-body tr').length) {
+                    $('#customer-existing-orders-body').append(`
+                        <tr id="no-existing-orders-row">
+                            <td colspan="4" class="text-center">No orders found for this customer.</td>
+                        </tr>
+                    `);
+                }
+            },
+            error: function () {
+                showCustomerOrdersError('Failed to delete order.');
+            }
+        });
+    });
+
+    ensureAtLeastOneRow();
+</script>
+{% endblock %}

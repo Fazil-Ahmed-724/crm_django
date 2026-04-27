@@ -33,6 +33,7 @@
                         <td>{{ customer.email }}</td>
                         <td>{{ customer.order_set.count }}</td>
                         <td>
+                            <a href="{% url 'customer_orders' customer.id %}" class="btn btn-sm btn-warning">Orders</a>
                             <button class="btn btn-sm btn-info" data-bs-toggle="modal"
                                 data-bs-target="#viewCustomerModal" data-id="{{ customer.id }}"
                                 data-name="{{ customer.name }}" data-phone="{{ customer.phone }}"

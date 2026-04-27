@@ -98,6 +98,53 @@ def add_customer(request):
             'total_orders': customer.order_set.count(),
         })
     return JsonResponse({'error': 'Invalid request'}, status=400)
+@csrf_exempt
+def customer_orders(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        product_ids = request.POST.getlist('product')
+        statuses = request.POST.getlist('status')
+
+        if not product_ids or not statuses or len(product_ids) != len(statuses):
+            return JsonResponse({'error': 'Each order row needs a product and status.'}, status=400)
+
+        valid_statuses = {key for key, _ in Order.STATUS}
+        created_orders = []
+
+        for product_id, status in zip(product_ids, statuses):
+            if not product_id or not status:
+                return JsonResponse({'error': 'Product and status are required for every row.'}, status=400)
+            if status not in valid_statuses:
+                return JsonResponse({'error': 'Invalid status selected.'}, status=400)
+
+            product = get_object_or_404(Product, id=product_id)
+            order = Order.objects.create(customer=customer, product=product, status=status)
+            created_orders.append({
+                'id': order.id,
+                'customer_id': customer.id,
+                'customer_name': customer.name,
+                'product_id': product.id,
+                'product_name': product.name,
+                'status': order.status,
+                'date_created': order.date_created.strftime('%Y-%m-%d %H:%M'),
+            })
+
+        return JsonResponse({'orders': created_orders})
+
+    if request.method == 'GET':
+        products = Product.objects.all()
+        statuses = Order.STATUS
+        orders = Order.objects.filter(customer=customer).select_related('product').order_by('-date_created')
+        return render(request, 'accounts/multiple-orders-customers.html', {
+            'customer': customer,
+            'products': products,
+            'statuses': statuses,
+            'orders': orders,
+        })
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 @csrf_exempt
 def edit_customer(request, customer_id):
