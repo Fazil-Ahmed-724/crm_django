@@ -15,6 +15,10 @@
 <div class="row p-3">
     <div class="col-md-12">
         <div class="card card-body">
+            <div class="mb-3">
+                <input type="search" id="products-search-input" class="form-control"
+                    placeholder="Search by product, category, or price">
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -48,7 +52,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
+                    <tr id="no-products-row">
                         <td colspan="4" class="text-center">No products found.</td>
                     </tr>
                     {% endfor %}
@@ -57,4 +61,42 @@
         </div>
     </div>
 </div>
+<script>
+    function toggleProductsSearchEmptyState(visibleRows) {
+        if (visibleRows > 0) {
+            $('#products-search-empty-row').remove();
+            return;
+        }
+
+        if (!$('#products-search-empty-row').length) {
+            $('#product-table-body').append(`
+                <tr id="products-search-empty-row">
+                    <td colspan="4" class="text-center">No matching products found.</td>
+                </tr>
+            `);
+        }
+    }
+
+    $('#products-search-input').on('input', function () {
+        const query = $(this).val().trim().toLowerCase();
+        let visibleRows = 0;
+
+        $('#products-search-empty-row').remove();
+
+        $('#product-table-body tr[data-product-id]').each(function () {
+            const product = $(this).find('td').eq(0).text().trim().toLowerCase();
+            const category = $(this).find('td').eq(1).text().trim().toLowerCase();
+            const price = $(this).find('td').eq(2).text().trim().toLowerCase();
+            const matches = !query || product.includes(query) || category.includes(query) || price.includes(query);
+
+            $(this).toggle(matches);
+            if (matches) {
+                visibleRows += 1;
+            }
+        });
+
+        $('#no-products-row').toggle(!query && visibleRows === 0);
+        toggleProductsSearchEmptyState(visibleRows);
+    });
+</script>
 {% endblock %}

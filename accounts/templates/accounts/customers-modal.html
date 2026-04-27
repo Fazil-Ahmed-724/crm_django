@@ -83,6 +83,10 @@
 </div>
 
 <script>
+    function customerOrdersUrl(customerId) {
+        return '{% url "customer_orders" 0 %}'.replace('/0/', '/' + customerId + '/');
+    }
+
     function customerTableBody() {
         return $('#customer-table-body');
     }
@@ -98,6 +102,7 @@
                     <td>${customer.email}</td>
                     <td>${customer.total_orders}</td>
                     <td>
+                        <a href="${customerOrdersUrl(customer.id)}" class="btn btn-sm btn-warning">Orders</a>
                         <button class="btn btn-sm btn-info" data-bs-toggle="modal"
                             data-bs-target="#viewCustomerModal" data-id="${customer.id}"
                             data-name="${customer.name}" data-phone="${customer.phone}"

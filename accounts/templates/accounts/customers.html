@@ -15,6 +15,10 @@
 <div class="row p-3">
     <div class="col-md-12">
         <div class="card card-body">
+            <div class="mb-3">
+                <input type="search" id="customers-search-input" class="form-control"
+                    placeholder="Search by customer, phone, email, or total orders">
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -52,7 +56,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
+                    <tr id="no-customers-row">
                         <td colspan="5" class="text-center">No customers found.</td>
                     </tr>
                     {% endfor %}
@@ -61,4 +65,44 @@
         </div>
     </div>
 </div>
+<script>
+    function toggleCustomersSearchEmptyState(visibleRows) {
+        if (visibleRows > 0) {
+            $('#customers-search-empty-row').remove();
+            return;
+        }
+
+        if (!$('#customers-search-empty-row').length) {
+            $('#customer-table-body').append(`
+                <tr id="customers-search-empty-row">
+                    <td colspan="5" class="text-center">No matching customers found.</td>
+                </tr>
+            `);
+        }
+    }
+
+    $('#customers-search-input').on('input', function () {
+        const query = $(this).val().trim().toLowerCase();
+        let visibleRows = 0;
+
+        $('#customers-search-empty-row').remove();
+
+        $('#customer-table-body tr[data-customer-id]').each(function () {
+            const customer = $(this).find('td').eq(0).text().trim().toLowerCase();
+            const phone = $(this).find('td').eq(1).text().trim().toLowerCase();
+            const email = $(this).find('td').eq(2).text().trim().toLowerCase();
+            const totalOrders = $(this).find('td').eq(3).text().trim().toLowerCase();
+            const matches = !query || customer.includes(query) || phone.includes(query) ||
+                email.includes(query) || totalOrders.includes(query);
+
+            $(this).toggle(matches);
+            if (matches) {
+                visibleRows += 1;
+            }
+        });
+
+        $('#no-customers-row').toggle(!query && visibleRows === 0);
+        toggleCustomersSearchEmptyState(visibleRows);
+    });
+</script>
 {% endblock %}

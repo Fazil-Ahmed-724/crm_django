@@ -15,6 +15,10 @@
 <div class="row p-3">
     <div class="col-md-12">
         <div class="card card-body">
+            <div class="mb-3">
+                <input type="search" id="orders-search-input" class="form-control"
+                    placeholder="Search by customer, product, status, or date">
+            </div>
             <table class="table">
                 <thead>
                     <tr>
@@ -55,7 +59,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr>
+                    <tr id="no-orders-row">
                         <td colspan="5" class="text-center">No orders found.</td>
                     </tr>
                     {% endfor %}
@@ -64,4 +68,44 @@
         </div>
     </div>
 </div>
+<script>
+    function toggleOrdersSearchEmptyState(visibleRows) {
+        if (visibleRows > 0) {
+            $('#orders-search-empty-row').remove();
+            return;
+        }
+
+        if (!$('#orders-search-empty-row').length) {
+            $('#order-table-body').append(`
+                <tr id="orders-search-empty-row">
+                    <td colspan="5" class="text-center">No matching orders found.</td>
+                </tr>
+            `);
+        }
+    }
+
+    $('#orders-search-input').on('input', function () {
+        const query = $(this).val().trim().toLowerCase();
+        let visibleRows = 0;
+
+        $('#orders-search-empty-row').remove();
+
+        $('#order-table-body tr[data-order-id]').each(function () {
+            const customer = $(this).find('td').eq(0).text().trim().toLowerCase();
+            const product = $(this).find('td').eq(1).text().trim().toLowerCase();
+            const status = $(this).find('td').eq(2).text().trim().toLowerCase();
+            const date = $(this).find('td').eq(3).text().trim().toLowerCase();
+            const matches = !query || customer.includes(query) || product.includes(query) ||
+                status.includes(query) || date.includes(query);
+
+            $(this).toggle(matches);
+            if (matches) {
+                visibleRows += 1;
+            }
+        });
+
+        $('#no-orders-row').toggle(!query && visibleRows === 0);
+        toggleOrdersSearchEmptyState(visibleRows);
+    });
+</script>
 {% endblock %}
