@@ -1,11 +1,13 @@
 {% extends 'accounts/main.html' %}
 
 {% block content %}
-
+{% include 'accounts/products-modal.html' %}
 <div class="row p-3">
     <div class="col-md-12">
         <div class="card card-body">
             <h5>Products</h5>
+            <button class="btn btn-sm btn-success float-end" data-bs-toggle="modal"
+                data-bs-target="#addProductModal">Add Product</button>
         </div>
     </div>
 </div>
@@ -19,14 +21,40 @@
                         <th>Product</th>
                         <th>Category</th>
                         <th>Price</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <!-- Product rows go here -->
+                <tbody id="product-table-body">
+                    {% for product in products %}
+                    <tr data-product-id="{{ product.id }}">
+                        <td>{{ product.name }}</td>
+                        <td>{{ product.category }}</td>
+                        <td>${{ product.price|floatformat:2 }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                data-bs-target="#viewProductModal" data-id="{{ product.id }}"
+                                data-name="{{ product.name }}" data-category="{{ product.category }}"
+                                data-price="{{ product.price }}">View</button>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                                data-bs-target="#editProductModal" data-id="{{ product.id }}"
+                                data-name="{{ product.name }}" data-category="{{ product.category }}"
+                                data-price="{{ product.price }}"
+                                data-edit-url="{% url 'edit_product' product.id %}">Edit</button>
+                            <button type="button" class="btn btn-sm btn-danger delete-product-btn"
+                                data-id="{{ product.id }}"
+                                data-delete-url="{% url 'delete_product' product.id %}">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center">No products found.</td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
 {% endblock %}

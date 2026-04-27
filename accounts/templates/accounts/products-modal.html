@@ -1,0 +1,246 @@
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Add Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="add-name">Product Name</label>
+                        <input type="text" class="form-control" id="add-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-category">Category</label>
+                        <select name="category" id="add-category" class="form-control" required>
+                            <option value="">Select Category</option>
+                            {% for key, value in categories %}
+                            <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-price">Price</label>
+                        <input type="number" class="form-control" id="add-price" name="price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Product Modal -->
+<div class="modal fade" id="viewProductModal" tabindex="-1" aria-labelledby="viewProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewProductModalLabel">View Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> {{ product.name }}</p>
+                <p><strong>Category:</strong> {{ product.category }}</p>
+                <p><strong>Price:</strong> ${{ product.price|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editProductModalLabel">Edit Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit-name">Product Name</label>
+                        <input type="text" class="form-control" id="edit-name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-category">Category</label>
+                        <select name="category" id="edit-category" class="form-control" required>
+                            <option value="">Select Category</option>
+                            {% for key, value in categories %}
+                            <option value="{{ key }}" {% if key == product.category %}selected{% endif %}>{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-price">Price</label>
+                        <input type="number" class="form-control" id="edit-price" name="price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function productTableBody() {
+        return $('#product-table-body');
+    }
+
+    function productRowHtml(product) {
+        var isProductsPage = !!$('#viewProductModal').length && $('th').filter(function () {
+            return $(this).text().trim() === 'Actions';
+        }).length > 0;
+
+        if (isProductsPage) {
+            return `
+                <tr data-product-id="${product.id}">
+                    <td>${product.name}</td>
+                    <td>${product.category}</td>
+                    <td>$${parseFloat(product.price).toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" data-bs-toggle="modal"
+                            data-bs-target="#viewProductModal" data-id="${product.id}"
+                            data-name="${product.name}" data-category="${product.category}"
+                            data-price="${product.price}">View</button>
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#editProductModal" data-id="${product.id}"
+                            data-name="${product.name}" data-category="${product.category}"
+                            data-price="${product.price}" data-edit-url="/products/edit/${product.id}/">Edit</button>
+                        <button type="button" class="btn btn-sm btn-danger delete-product-btn"
+                            data-id="${product.id}" data-delete-url="/products/delete/${product.id}/">Delete</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        return `
+            <tr data-product-id="${product.id}">
+                <td>${product.name}</td>
+                <td>${product.category}</td>
+                <td>$${parseFloat(product.price).toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#editProductModal" data-id="${product.id}"
+                        data-name="${product.name}" data-category="${product.category}"
+                        data-price="${product.price}" data-edit-url="/products/edit/${product.id}/">Update</button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-product-btn"
+                        data-id="${product.id}" data-delete-url="/products/delete/${product.id}/">Delete</button>
+                </td>
+            </tr>
+        `;
+    }
+
+    // viewproduct modal
+    $('#viewProductModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var name = button.data('name');
+        var category = button.data('category');
+        var price = button.data('price');
+
+        var modal = $(this);
+        modal.find('.modal-body').html(
+            '<p><strong>Name:</strong> ' + name + '</p>' +
+            '<p><strong>Category:</strong> ' + category + '</p>' +
+            '<p><strong>Price:</strong> $' + parseFloat(price).toFixed(2) + '</p>'
+        );
+    });
+
+    // editproduct modal
+    $('#editProductModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var name = button.data('name');
+        var category = button.data('category');
+        var price = button.data('price');
+        var editUrl = button.data('edit-url');
+
+        var modal = $(this);
+        modal.find('#edit-name').val(name);
+        modal.find('#edit-category').val(category);
+        modal.find('#edit-price').val(price);
+        modal.find('form').attr('action', editUrl);
+    });
+
+    // Add product modal
+    $('#addProductModal').on('show.bs.modal', function (event) {
+        var modal = $(this);
+        modal.find('#add-name').val('');
+        modal.find('#add-category').val('');
+        modal.find('#add-price').val('');
+        modal.find('form').attr('action', '{% url "add_product" %}');
+    });
+
+    // Add Product via AJAX
+    $('#addProductModal form').on('submit', function (e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            url: '{% url "add_product" %}',
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                $('#addProductModal').modal('hide');
+                productTableBody().append(productRowHtml(response));
+            },
+            error: function () {
+                alert('Failed to add product.');
+            }
+        });
+    });
+
+    // Edit Product via AJAX
+    $('#editProductModal form').on('submit', function (e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        var url = $(this).attr('action');
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                $('#editProductModal').modal('hide');
+                $(`tr[data-product-id="${response.id}"]`).replaceWith(productRowHtml(response));
+            },
+            error: function () {
+                alert('Failed to edit product.');
+            }
+        });
+    });
+
+    // Delete Product via AJAX
+    $(document).on('click', '.delete-product-btn', function () {
+        var productId = $(this).data('id');
+        var deleteUrl = $(this).data('delete-url');
+
+        if (!confirm('Delete this product?')) {
+            return;
+        }
+
+        $.ajax({
+            url: deleteUrl,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function () {
+                $(`tr[data-product-id="${productId}"]`).remove();
+            },
+            error: function () {
+                alert('Failed to delete product.');
+            }
+        });
+    });
+</script>

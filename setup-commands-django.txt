@@ -4,6 +4,7 @@ python manage.py startapp accounts		 -- setup
 cd crm_django
 python manage.py runserver			 -- run projecct
 python manage.py migrate 			 -- run migration	
-
+python manage.py createsuperuser     -- create super user
+python manage.py makemigrations      -- create migration files
 
 asctro

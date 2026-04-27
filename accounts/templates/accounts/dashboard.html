@@ -2,25 +2,34 @@
 
 {% block content %}
 {% include 'accounts/status.html' %}
+{% include 'accounts/products-modal.html' %}
 <div class="row p-3">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <h5>CUSTOMERS:</h5>
         <a class="btn btn-primary btn-sm btn-block" href="">Create Customer</a>
         <table class="table table-sm">
             <thead>
                 <tr>
                     <th>Customer</th>
-                    <th>Orders</th>
+                    <th>Phone</th>
+                    <th>Update</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Customers will be listed here -->
+                {% for customer in customers %}
+                <tr>
+                    <td>{{ customer.name }}</td>
+                    <td>{{ customer.phone }}</td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="">Update</a></td>
+                    <td><a class="btn btn-sm btn-outline-danger" href="">Delete</a </tr>
+                        {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <div class="col-md-6">
-        <h5>LAST 5 ORDERS</h5>
+    <div class="col-md-4">
+        <h5>ORDERS</h5>
         <a class="btn btn-primary btn-sm btn-block" href="">Create Order</a>
         <table class="table table-sm">
             <thead>
@@ -29,11 +38,61 @@
                     <th>Date Ordered</th>
                     <th>Status</th>
                     <th>Update</th>
-                    <th>Remove</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Last 5 orders will be listed here -->
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.product.name }}</td>
+                    <td>{{ order.date_ordered }}</td>
+                    <td>{{ order.status }}</td>
+                    <td><a class="btn btn-sm btn-outline-primary" href="">Update</a></td>
+                    <td><a class="btn btn-sm btn-outline-danger" href="">Delete</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="col-md-4">
+        <h5>PRODUCTS:</h5>
+        <button class="btn btn-sm btn-success float-end" data-bs-toggle="modal" data-bs-target="#addProductModal">Create
+            Product</button>
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Update</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="product-table-body">
+                {% for product in products %}
+                <tr data-product-id="{{ product.id }}">
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.category }}</td>
+                    <td>${{ product.price|floatformat:2 }}</td>
+                    <td>
+
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                            data-bs-target="#editProductModal" data-id="{{ product.id }}" data-name="{{ product.name }}"
+                            data-category="{{ product.category }}" data-price="{{ product.price }}"
+                            data-edit-url="{% url 'edit_product' product.id %}">
+                            Update
+                        </button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-product-btn"
+                            data-id="{{ product.id }}"
+                            data-delete-url="{% url 'delete_product' product.id %}">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>

@@ -31,7 +31,7 @@ def contact(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
-    # path('', home, name='home'),
+    path('', home, name='home'),
     # path('about/', about, name='about'),    
     # path('contact/', contact, name='contact'),
 
